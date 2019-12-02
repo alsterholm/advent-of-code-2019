@@ -1,3 +1,5 @@
+package day1
+
 import java.io.File
 
 private fun getInput() = File("src/input/day1.txt")
@@ -6,7 +8,7 @@ private fun getInput() = File("src/input/day1.txt")
 
 object PartOne {
     fun calculateFuel(mass: Int) = mass / 3 - 2
-    fun solve() = getInput().sumBy { calculateFuel(it) }
+    fun solve(masses: List<Int>) = masses.sumBy { calculateFuel(it) }
 }
 
 object PartTwo {
@@ -16,10 +18,12 @@ object PartTwo {
         return fuel + calculateFuel(fuel)
     }
 
-    fun solve() = getInput().sumBy{ calculateFuel(it) }
+    fun solve(masses: List<Int>) = masses.sumBy{ calculateFuel(it) }
 }
 
 fun main() {
-    println("Part one: ${PartOne.solve()}")
-    println("Part two: ${PartTwo.solve()}")
+    val input = getInput()
+
+    println("Part one: ${PartOne.solve(input)}")
+    println("Part two: ${PartTwo.solve(input)}")
 }

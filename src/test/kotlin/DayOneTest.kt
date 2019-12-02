@@ -1,3 +1,4 @@
+import day1.PartOne
 import org.junit.Test
 import kotlin.test.assertEquals
 
