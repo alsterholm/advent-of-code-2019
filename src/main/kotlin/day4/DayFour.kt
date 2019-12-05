@@ -3,9 +3,12 @@ package day4
 class ElfPassword(digits: Int) {
     private val password = digits.toString().padStart(6, '0')
 
-    fun hasDigitsOccurringAtLeastTwice() = password.any{ c -> password.count{ it == c } >= 2 }
-    fun hasDigitsOccurringExactlyTwice() = password.any{ c -> password.count{ it == c } == 2 }
-    fun neverDecreases() = password.indices.all { it == password.length - 1 || password[it] <= password[it + 1] }
+    fun hasDigitsOccurringAtLeastTwice() = hasOccurringDigitsWhere { it >= 2 }
+    fun hasDigitsOccurringExactlyTwice() = hasOccurringDigitsWhere { it == 2 }
+    fun neverDecreases() = password.toCharArray().sorted() == password.toList()
+
+    private fun hasOccurringDigitsWhere(cb: (count: Int) -> Boolean) =
+            password.any{ char -> cb(password.count{ it == char }) }
 }
 
 object PartOne {
