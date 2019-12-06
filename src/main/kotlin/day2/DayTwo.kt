@@ -1,5 +1,6 @@
 package day2
 
+import intcode.Computer
 import java.io.File
 
 private fun getInput() = ArrayList<Int>(
@@ -10,7 +11,7 @@ private fun getInput() = ArrayList<Int>(
 )
 
 object PartOne {
-    fun solve(input: ArrayList<Int>) = Computer(input).run(noun = 12, verb = 2)
+    fun solve(input: ArrayList<Int>) = Computer(input).withNoun(12).withVerb(2).run()
 }
 
 object PartTwo {
@@ -19,7 +20,7 @@ object PartTwo {
 
         for (noun in 0..99) {
             for (verb in 0..99) {
-                if (computer.run(noun, verb) == 19690720) {
+                if (computer.withNoun(noun).withVerb(verb).run() == 19690720) {
                     return 100 * noun + verb
                 }
             }
