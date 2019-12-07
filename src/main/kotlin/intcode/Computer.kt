@@ -12,13 +12,20 @@ enum class Operation(val code: Int, val numberOfParameters: Int) {
     EXIT(99, 1)
 }
 
-class Computer(private val initialMemory: List<Int>, val input: Int = 1) {
+class Computer(private val initialMemory: List<Int>, val input: MutableList<Int>) {
     private var output: Int? = null
     private var memory = initialMemory.toIntArray()
     private var pointer = 0
+    private var inputPointer = 0
+    private var terminated = false
 
     private var noun: Int? = null
     private var verb: Int? = null
+
+    private var suspended = false
+
+    constructor(initialMemory: List<Int>) : this(initialMemory, mutableListOf(1))
+    constructor(initialMemory: List<Int>, input: Int = 1) : this(initialMemory, mutableListOf(input))
 
     fun withNoun(noun: Int): Computer {
         this.noun = noun
@@ -31,8 +38,28 @@ class Computer(private val initialMemory: List<Int>, val input: Int = 1) {
     }
 
     fun run(): Int {
-        resetState()
+        if (!suspended) resetState()
 
+        suspended = false
+
+        runMainLoop()
+
+        return if (output == null) memory[0] else output!!
+    }
+
+    fun suspend() {
+        suspended = true
+    }
+
+    fun isRunning() = !terminated
+
+    fun addInput(value: Int) {
+        input.add(value)
+    }
+
+    fun getOutput() = output
+
+    private fun runMainLoop() {
         loop@ while (pointer < memory.size) {
             val opcode = memory[pointer].toString().padStart(5, '0')
             val operation = Operation.values().find { it.code == opcode.substring(3, 5).toInt() }!!
@@ -43,10 +70,10 @@ class Computer(private val initialMemory: List<Int>, val input: Int = 1) {
                     parameterModes = opcode.substring(0, 3).reversed().toList().map { it == '0' }
             )
 
+            if (suspended) break@loop
+
             pointer = instruction.execute()
         }
-
-        return if (output == null) memory[0] else output!!
     }
 
     private fun resetState() {
@@ -65,13 +92,23 @@ class Computer(private val initialMemory: List<Int>, val input: Int = 1) {
             when (operation) {
                 Operation.ADD           -> memory[parameters[2]] = parameter(0) + parameter(1)
                 Operation.MULTIPLY      -> memory[parameters[2]] = parameter(0) * parameter(1)
-                Operation.INPUT         -> memory[parameters[0]] = input
+                Operation.INPUT         -> {
+                    if (inputPointer >= input.size) {
+                        suspend()
+                        return pointer
+                    } else {
+                        memory[parameters[0]] = input[inputPointer++]
+                    }
+                }
                 Operation.OUTPUT        -> output = parameter(0)
                 Operation.JUMP_IF_TRUE  -> if (parameter(0) != 0) return parameter(1)
                 Operation.JUMP_IF_FALSE -> if (parameter(0) == 0) return parameter(1)
                 Operation.LESS_THAN     -> memory[parameters[2]] = if (parameter(0) < parameter(1)) 1 else 0
                 Operation.EQUALS        -> memory[parameters[2]] = if (parameter(0) == parameter(1)) 1 else 0
-                Operation.EXIT          -> return memory.size
+                Operation.EXIT          -> {
+                    terminated = true
+                    return memory.size
+                }
             }
 
             return pointer + operation.numberOfParameters
